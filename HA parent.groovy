@@ -50,6 +50,7 @@
 *                                      (Manually updating the device type to the corresponding one is required in Hubitat. Only statuses of level and switch are shown in Hubitat.)
 * 0.1.27 2021-04-11 Yves Mercier       Added option for secure connection
 * 0.1.28 2021-04-14 Dan Ogorchock      Improved Fan Device handling
+* 0.1.29 2021-09-16                    Added support for scripts as a switch
 *
 * Thank you(s):
 */
@@ -220,6 +221,12 @@ def parse(String description) {
                 mapping = translateDevices(device_class, newVals, friendly)
                 if (mapping) updateChildDevice(mapping, entity, friendly)                
                 break
+            case "script":
+                if (logEnable) log.info "Script entity: ${entity}, newVals: ${newVals}, friendly: ${friendly}"
+                device_class = "script"
+                mapping = translateDevices(device_class, newVals, friendly)
+                if (mapping) updateChildDevice(mapping, entity, friendly)   
+                break
             default:
                 if (logEnable) log.info "No mapping exists for domain: ${domain}, device_class: ${device_class}.  Please contact devs to have this added."
         }
@@ -247,6 +254,7 @@ def translateDevices(device_class, newVals, friendly)
             presence: [type: "Generic Component Presence Sensor",       event: [[name: "presence", value: newVals[0] == "on" ? "present":"not present", descriptionText:"${friendly} is updated"]]],
             pressure: [type: "Generic Component Pressure Sensor",       event: [[name: "pressure", value: newVals[0], descriptionText:"${friendly} pressure is ${newVals[0]}"]], namespace: "community"],
             switch: [type: "Generic Component Switch",                  event: [[name: "switch", value: newVals[0], descriptionText:"${friendly} was turn ${newVals[0]}"]]],
+            script: [type: "Generic Component Switch",                  event: [[name: "switch", value: newVals[0], descriptionText:"${friendly} was turn ${newVals[0]}"]]],
             temperature: [type: "Generic Component Temperature Sensor", event: [[name: "temperature", value: newVals[0], descriptionText:"${friendly} temperature is ${newVals[0]}"]]],
             voltage: [type: "Generic Component Voltage Sensor",         event: [[name: "voltage", value: newVals[0], descriptionText:"${friendly} voltage is ${newVals[0]}"]]],
             window: [type: "Generic Component Contact Sensor",          event: [[name: "contact", value: newVals[0] == "on" ? "open":"closed", descriptionText:"${friendly} is updated"]]]
