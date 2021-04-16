@@ -21,6 +21,7 @@
 * Version Control:
 * 0.1.22     2021-02-24 tomw               Optional configuration app to selectively filter out Home Assistant devices
 * 0.1.23     2021002-25 Dan Ogorchock      Switched logic from Exclude to Include to make more intuitive.  Sorted Device List.
+* 0.1.24     2021-04-16                    Added support for scripts as a switch 
 */
 
 definition(
@@ -77,7 +78,8 @@ def mainPage2(params)
                 resp.data.each
                 {
                     domain = it.entity_id?.tokenize(".")?.getAt(0)
-                    if(["fan", "switch", "light", "binary_sensor", "sensor"].contains(domain))
+                    //added support for script as a switch
+                    if(["fan", "switch", "light", "binary_sensor", "sensor", "script"].contains(domain))
                     {
                         state.entityList.put(it.entity_id, "${it.attributes?.friendly_name} (${it.entity_id})")
                     }
