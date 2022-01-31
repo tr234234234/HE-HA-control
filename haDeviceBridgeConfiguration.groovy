@@ -20,8 +20,9 @@
 *
 * Version Control:
 * 0.1.22     2021-02-24 tomw               Optional configuration app to selectively filter out Home Assistant devices
-* 0.1.23     2021002-25 Dan Ogorchock      Switched logic from Exclude to Include to make more intuitive.  Sorted Device List.
-* 0.1.24     2021-04-16                    Added support for scripts as a switch 
+* 0.1.23     2021-02-25 Dan Ogorchock      Switched logic from Exclude to Include to make more intuitive.  Sorted Device List.
+* 0.1.32     2021-09-27 kaimyn             Add option to use HTTPS support in configuration app
+* 0.1.32.1   2022-01-30 tony               Added support for HA scripts and person
 */
 
 definition(
@@ -49,7 +50,10 @@ def mainPage1()
             input ("ip", "text", title: "Home Assistant IP Address", description: "HomeAssistant IP Address", required: true)
             input ("port", "text", title: "Home Assistant Port", description: "HomeAssistant Port Number", required: true, defaultValue: "8123")
             input ("token", "text", title: "Home Assistant Long-Lived Access Token", description: "HomeAssistant Access Token", required: true)
+            input name: "secure", type: "bool", title: "Require secure connection", defaultValue: false, required: true
+            input name: "ignoreSSLIssues", type: "bool", title: "Ignore SSL Issues", defaultValue: false, required: true
             input name: "enableLogging", type: "bool", title: "Enable debug logging?", defaultValue: false, required: true
+            
         }
         section("Please note, it may take some time to retrieve all entities from Home Assistant.")
         {
@@ -78,8 +82,7 @@ def mainPage2(params)
                 resp.data.each
                 {
                     domain = it.entity_id?.tokenize(".")?.getAt(0)
-                    //added support for script as a switch
-                    if(["fan", "switch", "light", "binary_sensor", "sensor", "script"].contains(domain))
+                    if(["fan", "switch", "light", "binary_sensor", "sensor", "device_tracker", "cover", "lock", "climate", "person","script"].contains(domain))
                     {
                         state.entityList.put(it.entity_id, "${it.attributes?.friendly_name} (${it.entity_id})")
                     }
@@ -141,6 +144,7 @@ def installed()
         ch.updateSetting("ip", ip)
         ch.updateSetting("port", port)
         ch.updateSetting("token", token)
+        ch.updateSetting("secure", secure)
 
         ch.updated()
     }
@@ -174,6 +178,7 @@ def genParamsMain(suffix, body = null)
                 'Authorization': "Bearer ${token}",
                 'Content-Type': "application/json"
             ],
+            ignoreSSLIssues: ignoreSSLIssues
         ]
     
     if(body)
@@ -186,6 +191,7 @@ def genParamsMain(suffix, body = null)
 
 def getBaseURI()
 {
+    if(secure) return "https://${ip}:${port}/api/"
     return "http://${ip}:${port}/api/"
 }
 
